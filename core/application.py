@@ -23,11 +23,15 @@ NEED_COLON = [3, 4, 6, 8, 10, 11, 12, 13, 14, 15, 17, 18, 19, 21]
 NEXT_LINE = 9
 ID_NUMBER = 3
 
-def special_match(strg, search=re.compile(r'/^[a-zA-ZÑñ\s]+$/').search):
+def special_match(strg, search=re.compile(r'/^[a-zA-Z]+$/').search):
 	return not bool(search(strg))
 
 def numeric_match(strg, search=re.compile(r'/[^0-9]/').search):
 	return not bool(search(strg))
+
+def alpha_with_remove_first_end_spaces(string):
+	return re.compile('[^a-zA-Z\s]').sub('', string).rstrip().lstrip();
+
 
 def allowed_image(filename):
 	allow = ["JPEG", "JPG", "PNG"]
@@ -393,126 +397,131 @@ def extract_ktp():
 						if "i" in tmp_data[tmp_index]:
 							tmp_data[tmp_index] = tmp_data[tmp_index].replace("i", "I")
 			
-			# for tmp_data in last_result_list:
-			# 	print(' '.join(tmp_data))
-
-			array = []
-			# yg dipake NIK, AGAMA, KEL_DESA, NAMA, PEKERJAAN, RT, RW, TANGGAL_LAHIR, TEMPAT
+			result_text = ""
 			for tmp_data in last_result_list:
+			 	result_text += ' '.join(tmp_data)+' '
+
+			# yg dipake NIK, AGAMA, KEL_DESA, NAMA, PEKERJAAN, RT, RW, TANGGAL_LAHIR, TEMPAT
+			# ngecek atribut yang dipakai --------- START
+			if 'NIK' in result_text and 'Nama' in result_text and 'Tempat/Tgl Lahir' in result_text and 'Jenis Kelamin' in result_text and 'RT/RW' in result_text and 'Kel/Desa' in result_text and 'Agama' in result_text and 'Pekerjaan' in result_text:
+				pass
+			else:
+				return {
+					'success':False,
+					'origin' : last_result_list,
+					'message':'Atributte KTP ada yang tidak terdeteksi, mohon upload ulang !'
+				}
+
+			# ngecek atribut yang dipakai --------- END
+
+			# mengambil atribut --------- START
+			for tmp_data in last_result_list:
+				# ngecek kalo ada exception --------- START
 				try:
 					string = ' '.join(tmp_data)
-					
 					if 'PROVINSI' in string:
 						fPROVINSI = string.replace('PROVINSI ', '')
-
 					if 'KABUPATEN' in string:
 						fKABUPATEN_KOTA = string.replace('KABUPATEN ', '')
-
 					if 'KOTA' in string:
 						fKABUPATEN_KOTA = string.replace('KOTA ', '')
-
 					# PENTING DIPAKE
 					if 'NIK' in string:
 						fNIK = string.replace('NIK : ', '')
-						if fRW is None:
-							raise Exception
-						if numeric_match(fRW) is False:
-							raise Exception
-
+						if fNIK is None:
+							raise ValueError('NIK pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
+						if numeric_match(fNIK) is False:
+							raise ValueError('NIK pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
+						if len(fNIK) < 16:
+							raise ValueError('NIK pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 					# PENTING DIPAKE
 					if 'Nama' in string:
 						fNAMA = string.replace('Nama : ', '')
-						if fNAMA is None:
-							raise Exception
-						if special_match(fNAMA) is False:
-							raise Exception
-
+						fNAMA = alpha_with_remove_first_end_spaces(fNAMA)
+						if fNAMA is None or special_match(fNAMA) is False:
+							raise ValueError('Nama pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 					# PENTING DIPAKE
 					if 'Tempat/Tgl Lahir' in string:
 						word = string.replace('Tempat/Tgl Lahir : ', '')
+						if re.search("([0-9]{2}\-[0-9]{2}\-[0-9]{4})", word) is None:
+							raise ValueError('Tempat Lahir pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 						fTANGGAL_LAHIR = re.search("([0-9]{2}\-[0-9]{2}\-[0-9]{4})", word)[0]
 						word = word.replace(fTANGGAL_LAHIR, '')
-						word = word.replace('- ', '')
-						word = word.replace('-', '')
-						fTEMPAT = word.replace(', ', '')
-
+						fTEMPAT = alpha_with_remove_first_end_spaces(word)
 						if fTEMPAT is None:
-							raise Exception
+							raise ValueError('Tempat Lahir pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 						if special_match(fTEMPAT) is False:
-							raise Exception
-
+							raise ValueError('Tempat Lahir pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 					if 'Jenis Kelamin' in string:
 						fJENIS_KELAMIN = string.replace('Jenis Kelamin : ', '')
-
 					if 'Gol. Darah' in string:
 						fGOL_DARAH = string.replace('Gol. Darah : ', '')
-
 					if 'Alamat' in string:
 						fALAMAT = string.replace('Alamat : ', '')
-
 					# PENTING DIPAKE
 					if 'RT/RW' in string:
 						word = string.replace("RT/RW : ",'')
-
+						if re.search('/', word) is None:
+							raise ValueError('RT dan RW pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 						fRT = word.split('/')[0].strip()
 						fRW = word.split('/')[1].strip()
-
 						if fRT is None:
-							raise Exception
+							raise ValueError('RT pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 						if numeric_match(fRT) is False:
-							raise Exception
-
+							raise ValueError('RT pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 						if fRW is None:
-							raise Exception
+							raise ValueError('RW pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 						if numeric_match(fRW) is False:
-							raise Exception
-
+							raise ValueError('RW pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 					# PENTING DIPAKE
 					if 'Kel/Desa' in string:
 						fKEL_DESA = string.replace('Kel/Desa : ', '')
+						fKEL_DESA = alpha_with_remove_first_end_spaces(fKEL_DESA)
 						if fKEL_DESA is None:
-							raise Exception
+							raise ValueError('Kel Desa pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 						if special_match(fKEL_DESA) is False:
-							raise Exception
-
+							raise ValueError('Kel Desa pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 					if 'Kecamatan' in string:
 						fKECAMATAN = string.replace('Kecamatan : ', '')
-
 					# PENTING DIPAKE
 					if 'Agama' in string:
 						fAGAMA = string.replace('Agama : ', '')
+						fAGAMA = alpha_with_remove_first_end_spaces(fAGAMA)
 						if fAGAMA is None:
-							raise Exception
+							raise ValueError('Agama pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 						if special_match(fAGAMA) is False:
-							raise Exception
-
+							raise ValueError('Agama pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 					if 'Status Perkawinan' in string:
 						fSTATUS_PERKAWINAN = string.replace('Status Perkawinan : ', '')
-
 					# PENTING DIPAKE
 					if 'Pekerjaan' in string:
 						fPEKERJAAN = string.replace('Pekerjaan : ', '')
+						fPEKERJAAN = alpha_with_remove_first_end_spaces(fPEKERJAAN)
 						if fPEKERJAAN is None:
-							raise Exception
+							raise ValueError('Pekerjaan pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 						if special_match(fPEKERJAAN) is False:
-							raise Exception
-
+							raise ValueError('Pekerjaan pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 					if 'Kewarganegaraan' in string:
 						fKEWARGANEGARAAN = string.replace('Kewarganegaraan : ', '')
-
 					if 'Berlaku Hingga' in string:
 						fBERLAKU_HINGGA = string.replace('Berlaku Hingga : ', '')
-
+				except ValueError as e:
+					return {
+						'success':False,
+						'message': str(e)
+					}
 				except Exception:
 					return {
 						'success':False,
+						'origin' : last_result_list,
 						'message':'KTP kurang jelas, mohon upload ulang !'
 					}
+				# ngecek kalo ada exception --------- END
 				
-						
 			return {
 				'success':True,
 				'message':'Success!',
+				'origin' : last_result_list,
 				'data': {
 					'PROVINSI': fPROVINSI,
 					'KABUPATEN_KOTA': fKABUPATEN_KOTA,
@@ -534,14 +543,15 @@ def extract_ktp():
 					'BERLAKU_HINGGA': fBERLAKU_HINGGA,
 				}
 			}
+			# mengambil atribut --------- END
 			
 		else:   
 			return {
 				'success':False,
-				'message':'Extension Not Allowed!'
+				'message':'Extensi File Tidak Diijinkan, file KTP harus berupa jpg, jpeg, png'
 			}
 	else:
 		return {
 			'success':False,
-			'message':'Method Not Allowed!'
+			'message':'Request Method Tidak Diijinkan!'
 		}
