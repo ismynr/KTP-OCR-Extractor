@@ -134,7 +134,7 @@ def return_id_number(image, gray):
 	text = image[locs[2][1] - 10:locs[2][1] + locs[2][3] + 10, locs[2][0] - 10:locs[2][0] + locs[2][2] + 10]
 
 	# 读取一个模板图像
-	img = cv2.imread("images/module.jpeg")
+	img = cv2.imread("images/module_nik.jpeg")
 	# 灰度图
 	ref = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 	# 二值图像
