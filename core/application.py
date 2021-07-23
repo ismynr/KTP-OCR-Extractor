@@ -140,7 +140,7 @@ def return_id_number(image, gray):
 	text = image[locs[2][1] - 10:locs[2][1] + locs[2][3] + 10, locs[2][0] - 10:locs[2][0] + locs[2][2] + 10]
 
 	# Baca gambar template
-	img = cv2.imread("images/module.jpeg")
+	img = cv2.imread("images/module_nik.jpeg")
 	# Skala abu-abu
 	ref = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 	# Gambar biner
@@ -481,9 +481,7 @@ def extract_ktp():
 					# PENTING DIPAKE
 					if 'RT/RW' in string:
 						word = string.replace("RT/RW : ",'')
-						if re.search(' +', word) is None:
-							raise ValueError('RT dan RW pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
-						else:
+						if re.search(' +', word):
 							fRT = word.split(' ')[0].strip()
 							fRW = word.split(' ')[1].strip()
 							if re.search('/', word):
@@ -491,6 +489,25 @@ def extract_ktp():
 									raise ValueError('RT dan RW pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 								fRT = word.split('/')[0].strip()
 								fRW = word.split('/')[1].strip()
+
+						else:
+							if re.search('/', word):
+								if re.search('/', word) is None:
+									raise ValueError('RT dan RW pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
+								fRT = word.split('/')[0].strip()
+								fRW = word.split('/')[1].strip()
+
+						# if re.search(' +', word) is None:
+						# 	raise ValueError('RT dan RW spasi pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
+						# else:
+						# 	fRT = word.split(' ')[0].strip()
+						# 	fRW = word.split(' ')[1].strip()
+						# 	if re.search('/', word):
+						# 		if re.search('/', word) is None:
+						# 			raise ValueError('RT dan RW pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
+						# 		fRT = word.split('/')[0].strip()
+						# 		fRW = word.split('/')[1].strip()
+
 						if fRT is None:
 							raise ValueError('RT pada KTP kurang jelas, silahkan foto dan upload ulang KTP')
 						if numeric_match(fRT) is False:
