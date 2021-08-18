@@ -407,14 +407,14 @@ def extract_ktp():
 
 			# yg dipake NIK, AGAMA, KEL_DESA, NAMA, PEKERJAAN, RT, RW, TANGGAL_LAHIR, TEMPAT
 			# ngecek atribut yang dipakai --------- START
-			if 'NIK' in result_text and 'Nama' in result_text and 'Tempat/Tgl Lahir' in result_text and 'Jenis Kelamin' in result_text and 'RT/RW' in result_text and 'Kel/Desa' in result_text and 'Agama' in result_text and 'Pekerjaan' in result_text:
-				pass
-			else:
-				return {
-					'success':False,
-					'origin' : last_result_list,
-					'message':'Atributte KTP ada yang tidak terdeteksi, mohon upload ulang !'
-				}
+			# if 'NIK' in result_text and 'Nama' in result_text and 'Tempat/Tgl Lahir' in result_text and 'Jenis Kelamin' in result_text and 'RT/RW' in result_text and 'Kel/Desa' in result_text and 'Agama' in result_text and 'Pekerjaan' in result_text:
+			# 	pass
+			# else:
+			# 	return {
+			# 		'success':False,
+			# 		'origin' : last_result_list,
+			# 		'message':'Atributte KTP ada yang tidak terdeteksi, mohon upload ulang !'
+			# 	}
 			# ngecek atribut yang dipakai --------- END
 
 			# mengambil atribut --------- START
